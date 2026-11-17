@@ -1,0 +1,23 @@
+# Core service
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.7
+pyyaml>=6.0
+python-dotenv>=1.0
+requests>=2.32
+tzdata>=2024.1            # zoneinfo data (bundled, independent of the OS)
+
+# Research
+feedparser>=6.0
+rapidfuzz>=3.9
+
+# Media
+pillow>=10.4
+faster-whisper>=1.1       # GPU captions (CTranslate2)
+piper-tts>=1.2            # local TTS
+edge-tts>=6.1             # optional online TTS
+
+# YouTube
+google-api-python-client>=2.140
+google-auth-oauthlib>=1.2
+google-auth-httplib2>=0.2

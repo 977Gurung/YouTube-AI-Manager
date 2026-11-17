@@ -1,4 +1,3 @@
-[README.md](https://github.com/user-attachments/files/34981687/README.md)
 <div align="center">
 
 # YT AI Manager
