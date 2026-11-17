@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="YT AI">
+<title>YT AI Manager</title>
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+<link rel="manifest" href="/static/manifest.json">
+<link rel="stylesheet" href="/static/style.css?v=7">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-review" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></symbol>
+  <symbol id="i-pipeline" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h6"/></symbol>
+  <symbol id="i-channels" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M10 10.5v5l4.5-2.5z"/></symbol>
+  <symbol id="i-analytics" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+  <symbol id="i-jobs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-system" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M6 13l3-4 3 2 3-5 3 4M8 21h8M12 17v4"/></symbol>
+  <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 3v9M6.4 6.4a8 8 0 1 0 11.2 0"/></symbol>
+  <symbol id="i-restart" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 4v5h-5"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+</svg>
+
+<header class="top">
+  <div class="brand"><span class="logo"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></span><span class="brand-name">YT AI Manager</span><span class="ver" id="app-version"></span></div>
+  <div id="health" class="chips" aria-label="System health"></div>
+  <div class="top-actions">
+    <button class="icon-btn" id="btn-refresh" title="Refresh" aria-label="Refresh"><svg><use href="#i-refresh"/></svg></button>
+    <button class="icon-btn" id="btn-key" title="Change API key" aria-label="Change API key"><svg><use href="#i-key"/></svg></button>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs" aria-label="Sections">
+  <button data-tab="review" class="active"><svg><use href="#i-review"/></svg><span>Review</span><span id="badge-review" class="badge"></span></button>
+  <button data-tab="pipeline"><svg><use href="#i-pipeline"/></svg><span>Pipeline</span></button>
+  <button data-tab="channels"><svg><use href="#i-channels"/></svg><span>Channels</span></button>
+  <button data-tab="analytics"><svg><use href="#i-analytics"/></svg><span>Analytics</span></button>
+  <button data-tab="jobs"><svg><use href="#i-jobs"/></svg><span>Jobs</span><span id="badge-jobs" class="badge info"></span></button>
+  <button data-tab="system"><svg><use href="#i-system"/></svg><span>System</span></button>
+</nav>
+
+<main>
+  <section id="tab-review" class="tab active">
+    <div class="page-head"><h1>Review</h1><p class="sub">Approve ideas, edit scripts and sign off finished videos.</p></div>
+    <div id="kpis" class="kpis"></div>
+    <div class="toolbar">
+      <div class="seg" id="review-filter" role="tablist">
+        <button data-f="all" class="active">All <span class="n" data-n="all"></span></button>
+        <button data-f="idea_pending">Ideas <span class="n" data-n="idea_pending"></span></button>
+        <button data-f="script_review">Scripts <span class="n" data-n="script_review"></span></button>
+        <button data-f="final_review">Final videos <span class="n" data-n="final_review"></span></button>
+      </div>
+      <select id="review-channel" aria-label="Channel"><option value="">All channels</option></select>
+      <span class="spacer"></span>
+      <button id="btn-approve-ideas" class="secondary"><span>Approve all <span class="hide-xs">visible </span>ideas</span></button>
+    </div>
+    <div id="review-list" class="cards"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+  </section>
+
+  <section id="tab-pipeline" class="tab">
+    <div class="page-head"><h1>Pipeline</h1><p class="sub">Every video and where it is. Tap a row for details.</p></div>
+    <div id="counts" class="counts"></div>
+    <div class="toolbar">
+      <label class="search"><svg><use href="#i-search"/></svg><input id="pipe-search" type="search" placeholder="Search titles…" aria-label="Search titles"></label>
+      <select id="pipe-status" aria-label="Status"><option value="">All statuses</option></select>
+      <select id="pipe-channel" aria-label="Channel"><option value="">All channels</option></select>
+      <span class="spacer"></span>
+      <button id="btn-tick" class="secondary">Run pipeline tick</button>
+    </div>
+    <table class="grid stack"><thead><tr><th>#</th><th>Channel</th><th>Fmt</th><th>Title / topic</th><th>Status</th><th>Scheduled</th><th>Updated</th><th></th></tr></thead>
+      <tbody id="pipe-body"></tbody></table>
+  </section>
+
+  <section id="tab-channels" class="tab">
+    <div class="page-head"><h1>Channels</h1><p class="sub">From config/channels.yaml. Research runs daily via n8n, or on demand here.</p></div>
+    <div class="toolbar">
+      <button id="btn-research-all">Run research on all channels</button>
+      <button id="btn-sync" class="secondary">Reload channels.yaml</button>
+    </div>
+    <div id="channel-list" class="cards"></div>
+  </section>
+
+  <section id="tab-analytics" class="tab">
+    <div class="page-head"><h1>Analytics</h1><p class="sub">YouTube stats for uploaded videos, synced nightly.</p></div>
+    <div class="toolbar"><button id="btn-analytics" class="secondary">Sync stats now</button></div>
+    <div id="analytics-channels" class="cards compact"></div>
+    <table class="grid stack"><thead><tr><th>Video</th><th>Channel</th><th>Fmt</th><th class="num">Views</th><th class="num">Likes</th><th class="num">Comments</th><th></th></tr></thead>
+      <tbody id="analytics-body"></tbody></table>
+  </section>
+
+  <section id="tab-jobs" class="tab">
+    <div class="page-head"><h1>Jobs</h1><p class="sub">The GPU worker runs one job at a time.</p></div>
+    <table class="grid stack"><thead><tr><th>#</th><th>Kind</th><th>Target</th><th>Status</th><th>Created</th><th>Finished</th><th>Detail</th><th></th></tr></thead>
+      <tbody id="jobs-body"></tbody></table>
+  </section>
+  <section id="tab-system" class="tab">
+    <div class="page-head sys-head">
+      <div><h1>System</h1><p class="sub" id="sys-sub">Live resource usage of this server.</p></div>
+      <div class="seg" id="sys-window" role="tablist" aria-label="Time window">
+        <button data-w="60" class="active">1 min</button><button data-w="300">5 min</button><button data-w="600">10 min</button>
+      </div>
+    </div>
+    <div class="power-bar" id="sys-power" aria-label="Power"></div>
+    <div id="sys-job" class="sys-job"></div>
+    <div id="sys-gauges" class="gauges"></div>
+    <div class="perf">
+      <div class="perf-rail" id="perf-rail" role="tablist" aria-label="Resources"></div>
+      <div class="perf-pane" id="perf-pane"></div>
+    </div>
+    <div class="proc-grid">
+      <div><h3 class="sec">Busiest processes</h3>
+        <table class="grid mini"><thead><tr><th>Process</th><th class="num">CPU</th><th class="num">Memory</th></tr></thead><tbody id="sys-procs"></tbody></table></div>
+      <div><h3 class="sec">Using the GPU</h3>
+        <table class="grid mini"><thead><tr><th>Process</th><th class="num">GPU memory</th></tr></thead><tbody id="sys-gpu-procs"></tbody></table></div>
+    </div>
+  </section>
+</main>
+
+<div id="drawer" class="drawer hidden" role="dialog" aria-modal="true" aria-label="Video details">
+  <div class="drawer-panel">
+    <div class="drawer-bar">
+      <button class="icon-btn" id="drawer-close" aria-label="Close"><svg class="only-mobile"><use href="#i-back"/></svg><svg class="only-desktop"><use href="#i-close"/></svg></button>
+      <span id="drawer-title" class="drawer-title"></span>
+    </div>
+    <div id="drawer-body"></div>
+  </div>
+</div>
+
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <form class="modal-box" id="modal-form">
+    <h3 id="modal-title"></h3>
+    <p id="modal-text" class="muted"></p>
+    <input id="modal-input" autocomplete="off">
+    <textarea id="modal-area" rows="4"></textarea>
+    <div class="modal-actions">
+      <button type="button" class="secondary" id="modal-cancel">Cancel</button>
+      <button type="submit" id="modal-ok">OK</button>
+    </div>
+  </form>
+</div>
+
+<div id="power-overlay" class="power-overlay hidden" role="alertdialog" aria-live="assertive">
+  <div class="power-box"><div class="spinner" id="power-spin"></div><h3 id="power-title"></h3><p id="power-text" class="muted"></p></div>
+</div>
+
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+<script src="/static/app.js?v=7"></script>
+<script src="/static/system.js?v=7"></script>
+</body>
+</html>

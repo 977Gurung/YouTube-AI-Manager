@@ -1,0 +1,157 @@
+# YouTube AI Manager - global settings. Per-channel overrides live in channels.yaml.
+# Tuned for: Ubuntu 22.04/24.04 (headless) + NVIDIA RTX 2070 (8 GB VRAM, Turing NVENC).
+
+app:
+  host: 127.0.0.1          # 127.0.0.1 = reach it via SSH tunnel (recommended). install.sh --lan sets 0.0.0.0
+  port: 8765
+  data_dir: ./data
+  timezone: UTC            # publishing slots in channels.yaml use this. install.sh sets it to the machine's timezone
+  min_lead_minutes: 45     # earliest slot is at least this far in the future
+  log_level: INFO
+
+worker:
+  # job kinds that load AI models run in a short-lived process of their own, so all their RAM is
+  # returned to the system when the job ends (otherwise the API keeps ~10 GB reserved while idle)
+  isolate: [produce]
+
+power:
+  enabled: true            # Restart / Shut down buttons on the System tab (also needs ./scripts/setup-power.sh)
+
+monitor:                   # dashboard "System" tab: live CPU / memory / GPU / network / disk
+  enabled: true
+  interval_s: 2            # seconds between samples
+  history_s: 600           # how far back the graphs can go (kept in memory only)
+
+llm:
+  base_url: http://127.0.0.1:11434
+  model: qwen2.5:7b-instruct   # ~4.7 GB Q4 - fits the 2070 with headroom. Alt: llama3.1:8b, gemma2:9b (tight)
+  temperature: 0.7
+  num_ctx: 8192
+  keep_alive: 3m               # how long Ollama keeps the LLM loaded after use
+  unload_after_use: true       # evict from VRAM before Whisper / NVENC
+  think: false                 # for reasoning models (qwen3 etc.) - skip <think> tokens
+  timeout_sec: 600
+
+gpu:
+  whisper_model: small         # small = fast + accurate enough for TTS audio; medium ~5 GB VRAM
+  whisper_compute_type: float16
+  video_encoder: h264_nvenc    # auto-falls back to libx264 if NVENC fails
+  nvenc_preset: p5
+
+voice:
+  default_provider: piper      # chatterbox | piper | edge | elevenlabs | test_tone  (channels.yaml: voice.provider wins)
+  chatterbox:                  # expressive local voice. Install once: ./ytm.sh setup-voice
+    exaggeration: 0.6          # emotion strength: 0.3 calm, 0.5 neutral, 0.7-0.9 lively and dramatic (per channel: voice.exaggeration)
+    emotion: auto              # auto = a bit more energy on the hook, on "!" / "?" and on the closing line; fixed = same everywhere
+    cfg_weight: 0.4            # lower (0.3) = slower, more deliberate pacing; higher (0.6) = follows the voice more strictly
+    temperature: 0.8           # variation between takes
+    sentence_pause_ms: 180
+    fallback: piper            # used if the expressive voice is not installed or fails (none = fail the video instead)
+  piper_models_dir: ./models/piper
+  section_pause_ms: 350
+
+video:
+  fps: 30
+  music_dir: ./assets/music    # drop royalty-free tracks here (YouTube Audio Library etc.); auto-ducked under voice
+  music_volume: 0.08
+  short:
+    width: 1080
+    height: 1920
+    words_target: 140          # ~55 s at 150 wpm
+    max_seconds: 60
+    clip_seconds: 3.5          # fast cuts for Shorts
+  long:
+    width: 1920
+    height: 1080
+    minutes_target: 8
+    clip_seconds: 6
+  captions:
+    short_style: pop           # pop (animated word-by-word + key-word effects) | karaoke | plain | none
+    long_style: pop            # pop | plain | none
+    long_burn_in: true         # false = long-form gets only the uploadable SRT
+    font: Liberation Sans      # apt: fonts-liberation (Arial-metric). Any installed fontconfig family works
+    pop_font: Anton            # bold display font for the pop style (assets/fonts/Anton-Regular.ttf); empty = use `font`
+    keyword_color: "#FF4D6D"   # colour of emphasised key words (the spoken word uses the channel's brand colour)
+    keyword_share: 0.5         # at most this share of phrases gets an emphasised key word
+    pop_uppercase: true
+
+media:
+  order: [broll, stock, ai]    # tried per section, first match wins. Override per channel with `visuals:`
+  broll_dir: ./assets/broll    # your own clips; file/folder names are the search words (city/traffic-night.mp4)
+  broll_min_score: 0.5         # share of the section's visual words that must match a clip name
+  providers: [pixabay, pexels] # stock APIs - used only when their key is in .env (Pexels has paused new keys)
+  max_clip_mb: 80
+
+ai_images:                     # SDXL + SDXL-Lightning on the GPU for sections with no clip
+  enabled: true
+  model: stabilityai/stable-diffusion-xl-base-1.0
+  vae: madebyollin/sdxl-vae-fp16-fix
+  lightning_repo: ByteDance/SDXL-Lightning
+  lightning_file: sdxl_lightning_8step_lora.safetensors   # 4step = ~2x faster, a bit less detail
+  steps: 8                     # must match the Lightning file (4 or 8)
+  guidance: 0.0                # Lightning is trained for no CFG
+  short_size: [768, 1344]      # 9:16 - SDXL native bucket
+  long_size: [1344, 768]       # 16:9
+  seconds_per_image:
+    short: 4.5
+    long: 7
+  motion_zoom: 0.12            # slow zoom/pan amount on each still
+  style: "cinematic photograph, natural light, rich detail, shallow depth of field"
+  prompt_with_llm: true        # local LLM writes a scene prompt per image from the narration
+  cache_dir: ./models/hf
+
+ai_video:                      # animate the AI stills with LTX-Video 2B (image-to-video) on the GPU
+  enabled: true
+  model: Lightricks/LTX-Video
+  # Fast "distilled" checkpoints inside that repo, tried in order by ./ytm.sh fetch-models. The first one
+  # that loads is remembered in models/ai_video.json; if none does, the slower base model is used.
+  distilled_files: [ltxv-2b-0.9.8-distilled.safetensors, ltxv-2b-0.9.6-distilled-04-25.safetensors]
+  steps: 8                     # distilled
+  guidance: 1.0                # distilled models need 1.0
+  base_steps: 30               # base model fallback
+  base_guidance: 3.0
+  dtype: bfloat16              # fetch-models tests this on your GPU and switches to float16 if needed
+  scope:                       # which AI stills get animated: all | key (hook + first scene of each chapter) | none
+    short: all
+    long: key
+  max_clips: {short: 16, long: 12}
+  max_minutes: {short: 150, long: 240}   # time budget per video; scenes not reached stay as stills
+  short_size: [480, 832]       # generated size (multiples of 32); upscaled to 1080x1920 afterwards
+  long_size: [832, 480]
+  frames: 97                   # 8n+1. 97 frames at 24 fps = 4 s per clip
+  fps: 24
+  max_slowdown: 1.35           # clips are slowed at most this much to cover a scene, then play forward-backward
+  interpolate: blend           # blend | mci (motion-compensated, slower) | off
+  motion: "slow cinematic camera movement, subtle natural motion, smooth, high quality"
+  text_encoder_device: auto    # cpu needs ~20 GB RAM for a minute; auto uses the GPU (slower) on machines with less RAM
+
+research:
+  trends_geo: US               # one or more country codes: US | AE | "AE, US"  (UAE = AE)
+  region: US                   # YouTube mostPopular region
+  max_signals_per_source: 20
+  max_signals_total: 45
+  ideas_per_run: 6
+  max_pending_ideas: 15        # research pauses for a channel while this many ideas await review
+  dedupe_threshold: 82         # fuzzy-match % against earlier topics
+  youtube_search_enabled: false   # search.list = 100 quota units per keyword
+  max_search_keywords: 2
+
+youtube:
+  daily_quota: 10000           # default per Google Cloud project; videos.insert costs 1600
+  quota_reserve: 2000          # research never eats into this
+  category_id: "22"            # People & Blogs; override per channel
+  made_for_kids: false
+  contains_synthetic_media: false  # set true if a video shows realistic altered/synthetic people, places or events
+  immediate_privacy: public    # used when the approved slot is less than 10 min away
+  disclose_ai_images: true     # sets YouTube's "altered or synthetic content" flag when AI images are used
+  upload_captions: true        # SRT for long-form (400 units)
+  oauth_port: 8085             # local port for the one-time channel sign-in (tunnel it over SSH)
+
+approval:
+  gates: [idea, script, final] # semi-automatic. Remove a gate to auto-advance (e.g. [final] = only watch the result)
+
+thumbnail:
+  font_path: ./assets/fonts/Anton-Regular.ttf          # downloaded by install.sh (SIL OFL)
+  fallback_font: /usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf
+
+tools: {}                      # e.g. ffmpeg: /opt/ffmpeg/bin/ffmpeg if you use a custom build

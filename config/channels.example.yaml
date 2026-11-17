@@ -1,0 +1,67 @@
+# Template. install.sh copies this to config/channels.yaml (your own copy, not tracked by git).
+# One block per YouTube channel. After editing: dashboard -> Channels -> "Reload channels.yaml".
+# Then link each channel once:  ./ytm.sh auth <slug>
+# (on the Google screen pick the matching channel / brand account)
+
+channels:
+  - slug: tech-simplified
+    name: Tech Simplified
+    niche: "AI tools, gadgets and everyday tech explained simply"
+    audience: "curious non-experts aged 18-40"
+    language: en
+    tone: "energetic, clear, lightly witty - never hype"
+    formats: [short, long]
+    mix: {short: 3, long: 1}
+    voice:
+      provider: piper
+      model: en_US-ryan-high
+      speed: 1.05
+      # provider: edge
+      # edge_voice: en-US-AndrewNeural
+      # provider: elevenlabs
+      # voice_id: YOUR_VOICE_ID
+    brand: {primary: "#FFD400", text: "#FFFFFF"}
+    # visuals: [broll, ai]        # optional: source order for this channel (broll | stock | ai)
+    # broll_dir: ./assets/broll/tech   # optional: this channel's own clip folder (searched first)
+    visual_style: "clean modern tech photography, soft studio light, shallow depth of field"
+    schedule:                   # local time (settings.app.timezone). "HH:MM" = daily, "Sat 16:00" = weekly
+      short: ["11:00", "19:00"]
+      long: ["Sat 16:00"]
+    max_uploads_per_day: 3
+    youtube: {category_id: "28"}   # Science & Technology
+    approval_gates: [idea, script, final]
+    research:
+      trends_geo: US
+      youtube_category: "28"
+      keywords: ["AI tools", "best gadgets", "smartphone tips"]
+      subreddits: [technology, gadgets, artificial]
+      rss:
+        - https://www.theverge.com/rss/index.xml
+        - https://techcrunch.com/feed/
+      competitors: []            # YouTube channel IDs (UC...) to watch for breakout uploads
+      fallback_visual: "technology abstract"
+    description_footer: |
+      Subscribe for more tech made simple.
+
+  - slug: history-bites
+    name: History Bites
+    niche: "surprising true stories from world history"
+    audience: "history fans and students, 16-45"
+    language: en
+    tone: "storytelling, suspenseful, factual"
+    formats: [short]
+    voice: {provider: edge, edge_voice: en-GB-RyanNeural}
+    brand: {primary: "#E8A33D", text: "#FFFFFF"}
+    visual_style: "painterly historical illustration, dramatic chiaroscuro lighting, muted colors"
+    schedule:
+      short: ["09:00", "20:00"]
+    max_uploads_per_day: 2
+    youtube: {category_id: "27"}   # Education
+    approval_gates: [idea, final]  # scripts auto-approve; you still approve the idea and the final video
+    research:
+      google_trends: false
+      youtube_category: "27"
+      subreddits: [history, AskHistorians]
+      rss:
+        - https://www.historytoday.com/feed/rss.xml
+      fallback_visual: "ancient ruins"

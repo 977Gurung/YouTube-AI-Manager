@@ -1,0 +1,11 @@
+# AI image generation (SDXL + SDXL-Lightning) and AI animation (LTX-Video) on the local GPU.
+# torch from PyPI ships with CUDA 12 on Linux x86_64 (no CUDA Toolkit needed). ~3 GB with its CUDA libraries.
+torch>=2.4
+diffusers>=0.33
+transformers>=4.44
+accelerate>=0.33
+peft>=0.12
+safetensors>=0.4
+huggingface_hub>=0.24
+sentencepiece>=0.2
+protobuf>=4

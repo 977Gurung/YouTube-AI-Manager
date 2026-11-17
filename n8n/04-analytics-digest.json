@@ -1,0 +1,260 @@
+{
+  "id": "YtmAnalytics0004",
+  "name": "YT AI Manager · 04 Analytics + daily digest",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Analytics\nSnapshots views/likes/comments for every uploaded video (1 quota unit per 50 videos), marks scheduled videos as published once YouTube makes them public, and sends a daily digest. Stats also feed back into tomorrow's research prompts.",
+        "height": 220,
+        "width": 420
+      },
+      "id": "777fcd6b-586c-4d13-8806-24d41ab3506f",
+      "name": "About",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 23 * * *"
+            }
+          ]
+        }
+      },
+      "id": "d2469417-8868-42a9-ac19-3f952ed5b885",
+      "name": "Every day 23:30",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"baseUrl\": \"http://127.0.0.1:8765\",\n  \"apiKey\": \"PASTE_YTM_API_KEY\",\n  \"notifyWebhook\": \"\"\n}",
+        "options": {}
+      },
+      "id": "44188ad9-dcc9-4bfc-bb45-a56a1f52eb50",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "notes": "Edit once: API base URL, YTM_API_KEY (injected by install.ps1) and an optional Discord/Slack/Teams webhook for alerts."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').item.json.baseUrl }}/api/analytics/sync",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $('Config').item.json.apiKey }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "3befeb9a-d775-4218-aa00-f48ee1523bec",
+      "name": "Queue stats sync",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "minutes"
+      },
+      "id": "93535b6a-e084-4a61-a7ce-e9dd306e70bb",
+      "name": "Wait 2 min",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        0
+      ],
+      "webhookId": "ea59827c-7576-4110-b43c-50647305c796"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Config').item.json.baseUrl }}/api/analytics/digest",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $('Config').item.json.apiKey }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "0a5f6ef2-8c80-4d3b-aead-a15b6d3e6d4b",
+      "name": "Build digest",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "25daf822-3486-44e7-9fab-55c3520e2a9b",
+              "leftValue": "={{ $('Config').item.json.notifyWebhook }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              },
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "6140e2d4-71ee-4916-9e16-5bd7f617b76e",
+      "name": "Webhook set?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').item.json.notifyWebhook }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ content: $('Build digest').item.json.text, text: $('Build digest').item.json.text }) }}",
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "5f307220-7d07-443d-a24f-365dabcacd20",
+      "name": "Send digest",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        -20
+      ],
+      "notes": "Discord uses 'content', Slack/Teams-workflow webhooks use 'text' - both are sent."
+    }
+  ],
+  "connections": {
+    "Every day 23:30": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Queue stats sync",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue stats sync": {
+      "main": [
+        [
+          {
+            "node": "Wait 2 min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2 min": {
+      "main": [
+        [
+          {
+            "node": "Build digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build digest": {
+      "main": [
+        [
+          {
+            "node": "Webhook set?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook set?": {
+      "main": [
+        [
+          {
+            "node": "Send digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "UTC",
+    "saveDataSuccessExecution": "all"
+  },
+  "pinData": {},
+  "tags": []
+}

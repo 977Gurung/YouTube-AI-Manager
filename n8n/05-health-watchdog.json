@@ -1,0 +1,205 @@
+{
+  "id": "YtmHealthWtch005",
+  "name": "YT AI Manager · 05 Health watchdog",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Health watchdog\nAlerts if the API is down, the worker thread died, Ollama/the model is missing, or disk space is low. Note: it alerts every 15 min while the problem lasts.",
+        "height": 220,
+        "width": 420
+      },
+      "id": "3e00ed20-932d-471a-93b5-e6d44acf26c0",
+      "name": "About",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/15 * * * *"
+            }
+          ]
+        }
+      },
+      "id": "4a008793-b317-4820-b488-e0e457220ddf",
+      "name": "Every 15 minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"baseUrl\": \"http://127.0.0.1:8765\",\n  \"apiKey\": \"PASTE_YTM_API_KEY\",\n  \"notifyWebhook\": \"\"\n}",
+        "options": {}
+      },
+      "id": "40408822-4c46-4f7a-a4a5-64550219dabd",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "notes": "Edit once: API base URL, YTM_API_KEY (injected by install.ps1) and an optional Discord/Slack/Teams webhook for alerts."
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Config').item.json.baseUrl }}/api/health",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $('Config').item.json.apiKey }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "1b598a98-797d-420e-b5bc-95128a9b1f7e",
+      "name": "Check health",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "retryOnFail": false,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "86b77313-bcf5-4645-b576-2708c97cf53a",
+              "leftValue": "={{ $json.ok === true }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              },
+              "rightValue": ""
+            },
+            {
+              "id": "6ef7d17f-454a-4217-a3b4-c96267aa00f8",
+              "leftValue": "={{ $('Config').item.json.notifyWebhook }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              },
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "cad70c71-0273-41e3-a49c-5fcb190ab084",
+      "name": "Unhealthy + webhook set?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').item.json.notifyWebhook }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ content: '⚠️ YT AI Manager health check failed: ' + ($('Check health').item.json.error ? $('Check health').item.json.error.message || 'API unreachable' : JSON.stringify({worker: $('Check health').item.json.worker_alive, ollama: $('Check health').item.json.ollama, disk_gb: $('Check health').item.json.disk_free_gb, failed: $('Check health').item.json.failed_videos})), text: '⚠️ YT AI Manager health check failed: ' + ($('Check health').item.json.error ? $('Check health').item.json.error.message || 'API unreachable' : JSON.stringify({worker: $('Check health').item.json.worker_alive, ollama: $('Check health').item.json.ollama, disk_gb: $('Check health').item.json.disk_free_gb, failed: $('Check health').item.json.failed_videos})) }) }}",
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "4a344d2a-3b22-4afe-b7d6-4617bb0683b0",
+      "name": "Send warning",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        -20
+      ],
+      "notes": "Discord uses 'content', Slack/Teams-workflow webhooks use 'text' - both are sent."
+    }
+  ],
+  "connections": {
+    "Every 15 minutes": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Check health",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check health": {
+      "main": [
+        [
+          {
+            "node": "Unhealthy + webhook set?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unhealthy + webhook set?": {
+      "main": [
+        [
+          {
+            "node": "Send warning",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "UTC",
+    "saveDataSuccessExecution": "all"
+  },
+  "pinData": {},
+  "tags": []
+}

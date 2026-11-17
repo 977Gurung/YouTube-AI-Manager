@@ -1,0 +1,3 @@
+# YT AI Manager: lets the dashboard (running as @USER@) reboot, power off, and restart its own services.
+# Exactly these commands and nothing else. Remove this file to take the permission away.
+@USER@ ALL=(root) NOPASSWD: /usr/bin/systemctl --no-block reboot, /usr/bin/systemctl --no-block poweroff, /usr/bin/systemctl --no-block restart ytm-api.service ytm-n8n.service

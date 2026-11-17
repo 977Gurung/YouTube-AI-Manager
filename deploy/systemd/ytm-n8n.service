@@ -1,0 +1,18 @@
+[Unit]
+Description=n8n automation for YouTube AI Manager
+After=network-online.target ytm-api.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=@USER@
+Group=@GROUP@
+WorkingDirectory=@ROOT@
+EnvironmentFile=@ROOT@/config/n8n.env
+ExecStart=@N8N@ start
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

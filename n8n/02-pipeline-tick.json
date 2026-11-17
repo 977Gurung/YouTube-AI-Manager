@@ -1,0 +1,118 @@
+{
+  "id": "YtmPipeTick00002",
+  "name": "YT AI Manager · 02 Pipeline tick",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Pipeline tick\nAdvances everything you approved: approved ideas -> scripting, approved scripts -> production (voice, footage, captions, render, thumbnail, SEO), approved videos -> upload with scheduled publish time. Quota-aware: uploads wait for the next quota day if needed.",
+        "height": 220,
+        "width": 420
+      },
+      "id": "b4487129-1220-42a9-92a7-58de09ebda22",
+      "name": "About",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/10 * * * *"
+            }
+          ]
+        }
+      },
+      "id": "bcaaa776-4fdf-4918-9f3e-2180cdf6cbea",
+      "name": "Every 10 minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"baseUrl\": \"http://127.0.0.1:8765\",\n  \"apiKey\": \"PASTE_YTM_API_KEY\",\n  \"notifyWebhook\": \"\"\n}",
+        "options": {}
+      },
+      "id": "5d0a7f03-ac44-440d-ba6e-501be465157d",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "notes": "Edit once: API base URL, YTM_API_KEY (injected by install.ps1) and an optional Discord/Slack/Teams webhook for alerts."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').item.json.baseUrl }}/api/pipeline/tick",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $('Config').item.json.apiKey }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "9bae9a86-6ef2-4dba-85c3-f63723472824",
+      "name": "Advance pipeline",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    }
+  ],
+  "connections": {
+    "Every 10 minutes": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Advance pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "UTC",
+    "saveDataSuccessExecution": "all"
+  },
+  "pinData": {},
+  "tags": []
+}

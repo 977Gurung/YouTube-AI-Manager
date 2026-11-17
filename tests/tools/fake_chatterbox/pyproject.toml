@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chatterbox-tts-fake"
+version = "0.0.1"
+description = "Sandbox stand-in for chatterbox-tts: same interface, produces tones instead of speech."
+dependencies = ["numpy"]
+
+[tool.setuptools]
+packages = ["chatterbox"]

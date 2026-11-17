@@ -1,0 +1,14 @@
+# Linux line endings for everything the server runs. A Windows checkout with CRLF endings breaks bash
+# ("/usr/bin/env: 'bash\r': No such file or directory").
+* text=auto eol=lf
+*.sh text eol=lf
+ytm.sh text eol=lf
+install.sh text eol=lf
+tests/live/fake-nvidia-smi text eol=lf
+*.service text eol=lf
+deploy/sudoers/* text eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.ttf binary
