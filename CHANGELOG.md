@@ -4,6 +4,16 @@ All notable changes to YT AI Manager. Versions follow [Semantic Versioning](http
 **MAJOR** = changes that need manual steps or break existing config/data, **MINOR** = new features,
 **PATCH** = fixes and small tweaks. The installed version: `./ytm.sh version`, the dashboard header, or `GET /api/health`.
 
+## [1.0.2] - 2026-11-17
+### Fixed
+- Scripts are marked executable in git again (a commit from Windows had dropped the flag, so `./install.sh`
+  and the GitHub check failed with "Permission denied")
+- Clone command in the README and installation guide showed the folder name twice
+
+### Added
+- `scripts/check.sh` fails if a script in git is not executable; the GitHub workflow runs it with `bash`
+- CONTRIBUTING: how to keep scripts executable when committing from Windows
+
 ## [1.0.1] - 2026-11-17
 Prepared for publishing on GitHub. No change to how the app works.
 

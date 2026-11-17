@@ -14,4 +14,6 @@ Thanks for helping. A few rules keep the project easy to run on a single home se
 3. **No secrets, no personal data** in code, tests or screenshots. Use the fake services in `tests/fakes.py`.
 4. **Keep it GPU-light.** The reference machine is an RTX 2070 with 8 GB VRAM; new models must fit next to nothing
    else and must fail soft (fall back) rather than stop a video.
-5. **Shell scripts use LF line endings** (enforced by `.gitattributes`).
+5. **Shell scripts use LF line endings** (enforced by `.gitattributes`) **and stay executable.** Windows does not
+   keep the executable flag; after adding a new script there, run `git update-index --chmod=+x <file>` before
+   committing. `./scripts/check.sh` fails if one is missing.

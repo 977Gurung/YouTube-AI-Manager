@@ -6,7 +6,7 @@
 animates, captions and uploads; you approve each step from your phone.**
 
 [![checks](https://github.com/977Gurung/YouTube-AI-Manager/actions/workflows/ci.yml/badge.svg)](https://github.com/977Gurung/YouTube-AI-Manager/actions/workflows/ci.yml)
-![version](https://img.shields.io/badge/version-1.0.1-blue)
+![version](https://img.shields.io/badge/version-1.0.2-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
 ![platform](https://img.shields.io/badge/Ubuntu-22.04%20%7C%2024.04-E95420)
 ![gpu](https://img.shields.io/badge/NVIDIA-8%20GB%20VRAM-76B900)
@@ -52,7 +52,7 @@ cloud services are YouTube itself and the trend sources it reads.
 
 ## Quick start
 ```bash
-git clone https://github.com/977Gurung/YouTube-AI-Manager.git yt-ai-manager yt-ai-manager
+git clone https://github.com/977Gurung/YouTube-AI-Manager.git yt-ai-manager
 cd yt-ai-manager
 ./install.sh                      # drivers, Ollama, Python env, n8n, services (re-runnable)
 ./ytm.sh fetch-models             # optional: AI images + animation models (~32 GB, once)

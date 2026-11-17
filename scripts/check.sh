@@ -35,6 +35,14 @@ assert re.fullmatch(r"\d+\.\d+\.\d+", v) and v == code == log, (v, code, log)
 print("ok", v)
 PY
 
+step "Scripts are executable in git (a commit from Windows can drop the flag)"
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    noexec=$(git ls-files -s install.sh ytm.sh 'scripts/*.sh' scripts/voice_worker.py tests/live/fake-nvidia-smi | awk '$1 != "100755" {print $4}')
+    [[ -z "$noexec" ]] && echo "ok" || { echo "!! not executable in git - fix: git update-index --chmod=+x <file>"; echo "$noexec"; fail=1; }
+else
+    echo "skipped (not a git checkout)"
+fi
+
 step "No secrets or personal config committed"
 bad=$(git ls-files 2>/dev/null | grep -E '(^|/)\.env$|client_secret.*\.json|(^|/)config/channels\.yaml$|(^|/)config/n8n\.env$|^secrets/[^.]|token.*\.json' || true)
 [[ -z "$bad" ]] && echo "ok" || { echo "!! these must not be in git:"; echo "$bad"; fail=1; }
