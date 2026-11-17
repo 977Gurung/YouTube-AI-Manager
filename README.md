@@ -52,7 +52,7 @@ cloud services are YouTube itself and the trend sources it reads.
 
 ## Quick start
 ```bash
-git clone https://github.com/977Gurung/YouTube-AI-Manager.git yt-ai-manager
+git clone https://github.com/977Gurung/YouTube-AI-Manager.git yt-ai-manager yt-ai-manager
 cd yt-ai-manager
 ./install.sh                      # drivers, Ollama, Python env, n8n, services (re-runnable)
 ./ytm.sh fetch-models             # optional: AI images + animation models (~32 GB, once)
