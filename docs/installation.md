@@ -33,7 +33,7 @@ Get the code onto the server, either from a release zip or with git:
 unzip yt-ai-manager-v1.0.1.zip && cd yt-ai-manager
 
 # B) git
-git clone https://github.com/977Gurung/yt-ai-manager.git && cd yt-ai-manager
+git clone https://github.com/977Gurung/YouTube-AI-Manager.git yt-ai-manager && cd yt-ai-manager
 ```
 Then, as your normal user (it uses `sudo` when needed):
 ```bash
